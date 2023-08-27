@@ -1,0 +1,132 @@
+module Mitsurugi
+{
+    struct PhSessionHandle
+    {
+        0 require int phSessionHandle;  // 会话句柄
+    };
+
+    struct PhKeyHandle
+    {
+        0 require int phKeyHandle;    // 密钥句柄
+    };
+
+    struct PhAgreementHandle
+    {
+        0 require int phAgreementHandle; // 协商密钥句柄
+    };
+
+    struct Tars_RSArefPublicKey   // RSA公钥结构(TARS)
+    {
+        0 optional unsigned int  bits;      // 模长
+	    1 optional unsigned byte m[256];  // 模N
+	    2 optional unsigned byte e[256]; // 公钥指数
+    };
+
+    struct Tars_RSArefPrivateKey  // RSA私钥结构（TARS）
+    {
+        // Tars的IDL文件结构体中不支持多维数组的声明，可在IDL中定义一维数组，在具体的实现代码中可利用一维数组模拟二维数组
+        0 optional unsigned int  bits;       // 模长
+	    1 optional unsigned byte m[256];   // 模N
+	    2 optional unsigned byte e[256];    // 公钥指数
+	    3 optional unsigned byte d[256];   // 私钥指数
+	    4 optional unsigned byte primeP[128];  // 素数p
+	    5 optional unsigned byte primeQ[128];  // 素数q
+	    6 optional unsigned byte pexpDp[128]; // Dp
+	    7 optional unsigned byte pexpDq[128]; // Dq
+	    8 optional unsigned byte coef[128];    // 系数i
+    };
+
+    struct Tars_ECCrefPublicKey    // ECC公钥结构
+    {
+        0 optional unsigned int  bits;   // 密钥位长
+	    1 optional unsigned byte x[64];  // 公钥x坐标
+	    2 optional unsigned byte y[64];  // 公钥y坐标
+    };
+
+    struct Tars_ECCrefPrivateKey    // ECC私钥结构
+    {
+        0 optional unsigned int  bits;  // 密钥位长
+        1 optional unsigned byte K[64];  // 私钥
+    };
+
+    struct Tars_ECCCipher  // ECC密文
+    {
+        0 optional unsigned byte x[64];   // X分量
+		1 optional unsigned byte y[64];   // Y分量
+		2 optional unsigned byte M[32];   // 明文的SM3杂凑值
+		3 optional unsigned int  L;      // 密文数据长度
+		4 optional unsigned byte C[1];  // 密文数据
+    };
+
+    struct Tars_ECCSignature  // ECC签名
+    {
+        0 optional unsigned byte r[64];  // 签名的r部分
+		1 optional unsigned byte s[64];  // 签名的s部分
+    };
+
+    interface KeyManage
+    {
+        // 导出RSA签名公钥
+        int exportSignPublicKey_RSA(PhSessionHandle sessionHandle, unsigned int uiKeyIndex, out Tars_RSArefPublicKey pucPublicKey);
+
+        // 导出RSA加密公钥
+        int exportEncPublicKey_RSA(PhSessionHandle sessionHandle, unsigned int uiKeyIndex, out Tars_RSArefPublicKey pucPublicKey);
+
+        // 产生RSA密钥对并输出
+        int generateKeyPair_RSA(PhSessionHandle sessionHandle, unsigned int uiKeyBits, out Tars_RSArefPublicKey pucPublicKey, out Tars_RSArefPrivateKey pucPrivateKey);
+
+        // 生成会话密钥并用内部RSA公钥加密输出
+        int generateKeyWithIPK_RSA(PhSessionHandle sessionHandle, unsigned int uiPKIIndex, unsigned int uiKeyBits, out vector<unsigned byte> pucKey, out unsigned int puiKeyLength, out PhKeyHandle keyHandle);
+
+        // 生成会话密钥并用外部RSA公钥加密输出
+        int generateKeyWithEPK_RSA(PhSessionHandle sessionHandle, unsigned int uiKeyBits, Tars_RSArefPublicKey pucPublicKey, out vector<unsigned byte> pucKey, out unsigned int puiKeyLength, out PhKeyHandle keyHandle);
+
+        // 导入会话密钥并用内部RSA私钥解密
+        int importKeyWithISK_RSA(PhSessionHandle sessionHandle, unsigned int uiISKIndex, vector<unsigned byte> pucKey, unsigned int puiKeyLength, out PhKeyHandle keyHandle);
+
+        // 基于RSA算法的数字信封转换
+        int exchangeDigitEnvelopeBaseOnRSA(PhSessionHandle sessionHandle, unsigned int uiKeyIndex, Tars_RSArefPublicKey pucPublicKey, vector<unsigned byte> pucDEInput, unsigned int uiDELength, out vector<unsigned byte> pucDEOutput, out unsigned int puiDELength);
+
+        // 导出ECC签名公钥
+        int exportSignPublicKey_ECC(PhSessionHandle sessionHandle, unsigned int uiKeyIndex, out Tars_ECCrefPublicKey pucPublicKey);
+
+        // 导出ECC加密公钥
+        int exportEncPublicKey_ECC(PhSessionHandle sessionHandle, unsigned int uiKeyIndex, out Tars_ECCrefPublicKey pucPublicKey);
+
+        // 产生ECC密钥对并输出
+        int generateKeyPair_ECC(PhSessionHandle sessionHandle, unsigned int uiAlgID, unsigned int uiKeyBits, out Tars_ECCrefPublicKey pucPublicKey, out Tars_ECCrefPrivateKey pucPrivateKey);
+
+        // 生成会话密钥并用内部ECC公钥加密输出
+        int generateKeyWithIPK_ECC(PhSessionHandle sessionHandle, unsigned int uiIPKIndex, unsigned int uiKeyBits, out Tars_ECCCipher pucKey, out PhKeyHandle keyHandle);
+
+        // 生成会话密钥并用外部ECC公钥加密输出
+        int generateKeyWithEPK_ECC(PhSessionHandle sessionHandle, unsigned int uiKeyBits, unsigned int uiAlgID, Tars_ECCrefPublicKey pucPublicKey, out Tars_ECCCipher pucKey, out PhKeyHandle keyHandle);
+
+        // 导入会话密钥并用内部ECC私钥解密
+        int importKeyWithISK_ECC(PhSessionHandle sessionHandle, unsigned int uiISKIndex, Tars_ECCCipher pucKey, out PhKeyHandle keyHandle);
+
+        // 生成密钥协商参数并输出
+        int generateAgreementDataWithECC(PhSessionHandle sessionHandle, unsigned int uiISKIndex, unsigned int uiKeyBits, vector<unsigned byte> pucSponsorID, unsigned int uiSponsorIDLength, out Tars_ECCrefPublicKey pucSponsorPublicKey, out Tars_ECCrefPublicKey pucSponsorTmpPublicKey, out PhAgreementHandle agreementHandle);
+
+        // 计算会话密钥
+        int generateKeyWithECC(PhSessionHandle sessionHandle, vector<unsigned byte> pucResponseID, unsigned int uiResponseIDLength, Tars_ECCrefPublicKey pucResponsePublicKey, Tars_ECCrefPublicKey pucResponseTmpPublicKey, PhAgreementHandle agreementHandle, out PhKeyHandle keyHandle);
+
+        // 产生协商数据并计算会话密钥
+        int generateAgreementDataAndKeyWithECC(PhSessionHandle sessionHandle, unsigned int uiISKIndex, unsigned int uiKeyBits, vector<unsigned byte> pucResponseID, unsigned int uiResponseIDLength, vector<unsigned byte> pucSponsorID, unsigned int uiSponsorIDLength, Tars_ECCrefPublicKey pucSponsorPublicKey, Tars_ECCrefPublicKey pucSponsorTmpPublicKey, out Tars_ECCrefPublicKey pucResponsePublicKey, out Tars_ECCrefPublicKey pucResponseTmpPublicKey, out PhKeyHandle keyHandle);
+
+        // 基于ECC算法的数字信封转换
+        int exchangeDigitEncelopeBaseOnECC(PhSessionHandle sessionHandle, unsigned int uiKeyIndex, unsigned int uiAlgID, Tars_ECCrefPublicKey pucPublicKey, Tars_ECCCipher pucEncDataIn, out Tars_ECCCipher pucEncDataOut);
+
+        // 生成会话密钥并用密钥加密密钥加密输出
+        int generateKeyWithKEK(PhSessionHandle sessionHandle, unsigned int uiKeyBits, unsigned int uiAlgID, unsigned int uiKEKIndex, out vector<unsigned byte> pucKey, out unsigned int puiKeyLength, out PhKeyHandle keyHandle);
+
+        // 导入会话密钥并用密钥加密密钥解密
+        int importKeyWithKEK(PhSessionHandle sessionHandle, unsigned int uiAlgID, unsigned int uiKEKIndex, vector<unsigned byte> pucKey, unsigned int puiKeyLength, out PhKeyHandle keyHandle);
+
+        // 导入明文会话密钥
+        int importKey(PhSessionHandle sessionHandle, vector<unsigned byte> pucKey, unsigned int uiKeyLength, out PhKeyHandle keyHandle);
+
+        // 销毁会话密钥
+        int destroyKey(PhSessionHandle sessionHandle, PhKeyHandle keyHandle);
+    };
+}; 

@@ -1,0 +1,5 @@
+EXECUTE_PROCESS(COMMAND /usr/bin/cmake -E make_directory /home/tarsproto/Mitsurugi/KeyManageServer)
+EXECUTE_PROCESS(COMMAND /usr/bin/cmake -E echo cp -rf /home/lucifer/KeyManageServer/src/KeyManage.h /home/tarsproto/Mitsurugi/KeyManageServer)
+EXECUTE_PROCESS(COMMAND /usr/bin/cmake -E copy /home/lucifer/KeyManageServer/src/KeyManage.h /home/tarsproto/Mitsurugi/KeyManageServer)
+EXECUTE_PROCESS(COMMAND /usr/bin/cmake -E echo cp -rf /home/lucifer/KeyManageServer/src/KeyManage.tars /home/tarsproto/Mitsurugi/KeyManageServer)
+EXECUTE_PROCESS(COMMAND /usr/bin/cmake -E copy /home/lucifer/KeyManageServer/src/KeyManage.tars /home/tarsproto/Mitsurugi/KeyManageServer)

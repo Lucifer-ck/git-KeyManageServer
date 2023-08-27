@@ -1,0 +1,7 @@
+EXECUTE_PROCESS(COMMAND /usr/bin/cmake -E echo mkdir -p /home/lucifer/KeyManageServer/build/tmp/KeyManageServer)
+EXECUTE_PROCESS(COMMAND /usr/bin/cmake -E echo rm -rf /home/lucifer/KeyManageServer/build/tmp/KeyManageServer)
+EXECUTE_PROCESS(COMMAND /usr/bin/cmake -E make_directory /home/lucifer/KeyManageServer/build/tmp/KeyManageServer)
+EXECUTE_PROCESS(COMMAND /usr/bin/cmake -E echo copy bin/KeyManageServer /home/lucifer/KeyManageServer/build/tmp/KeyManageServer/)
+EXECUTE_PROCESS(COMMAND /usr/bin/cmake -E copy bin/KeyManageServer /home/lucifer/KeyManageServer/build/tmp/KeyManageServer/)
+EXECUTE_PROCESS(COMMAND /usr/bin/cmake -E chdir /home/lucifer/KeyManageServer/build/tmp/ tar czfv KeyManageServer.tgz KeyManageServer)
+EXECUTE_PROCESS(COMMAND /usr/bin/cmake -E copy_if_different /home/lucifer/KeyManageServer/build/tmp/KeyManageServer.tgz /home/lucifer/KeyManageServer/build/KeyManageServer.tgz)
